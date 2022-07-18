@@ -32,4 +32,3 @@ def accept_file(fobj, filters):
 
 ranger.container.directory.accept_file = accept_file
 # endregion overwrite accept_file
-
