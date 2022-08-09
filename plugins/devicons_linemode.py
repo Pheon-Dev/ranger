@@ -1,29 +1,8 @@
-#!/usr/bin/python
-# coding=UTF-8
-# These glyphs, and the mapping of file extensions to glyphs
-# has been copied from the vimscript code that is present in
-# https://github.com/ryanoasis/vim-devicons
-import re;
-import os;
+import os
+import ranger.api
+from ranger.core.linemode import LinemodeBase
 
-# Get the XDG_USER_DIRS directory names from enviromental variables
-
-xdgs_dirs = {path.split('/')[-2]: icon for key, icon in [
-    ('XDG_DOCUMENTS_DIR'  , ''),
-    ('XDG_DOWNLOAD_DIR'   , ''),
-    ('XDG_CONFIG_DIR'     , ''),
-    ('XDG_MUSIC_DIR'      , ''),
-    ('XDG_PICTURES_DIR'   , ''),
-    ('XDG_PUBLICSHARE_DIR', ''),
-    ('XDG_TEMPLATES_DIR'  , ''),
-    ('XDG_VIDEOS_DIR'     , ''),
-] if (path := os.getenv(key))}
-
-
-# all those glyphs will show as weird squares if you don't have the correct patched font
-# My advice is to use NerdFonts which can be found here:
-# https://github.com/ryanoasis/nerd-fonts
-file_node_extensions = {
+FILE_NODE_EXTENSIONS = {
     '7z'       : '',
     'a'        : '',
     'ai'       : '',
@@ -91,7 +70,7 @@ file_node_extensions = {
     'gem'      : '',
     'gemspec'  : '',
     'gif'      : '',
-    'go'       : '',
+    'go'       : '',
     'gz'       : '',
     'gzip'     : '',
     'h'        : '',
@@ -147,14 +126,13 @@ file_node_extensions = {
     'nix'      : '',
     'o'        : '',
     'ogg'      : '',
-    'part'     : '',
     'pdf'      : '',
     'php'      : '',
     'pl'       : '',
     'pm'       : '',
     'png'      : '',
     'pp'       : '',
-    'ppt'      : '',
+    'ppt'      : '',
     'pptx'     : '',
     'ps1'      : '',
     'psb'      : '',
@@ -194,7 +172,6 @@ file_node_extensions = {
     'tex'      : 'ﭨ',
     'tgz'      : '',
     'toml'     : '',
-    'torrent'  : '',
     'ts'       : '',
     'tsx'      : '',
     'twig'     : '',
@@ -219,8 +196,7 @@ file_node_extensions = {
     'zsh'      : '',
 }
 
-dir_node_exact_matches = {
-# English
+DIR_NODE_EXACT_MATCHES = {
     '.git'                             : '',
     'Desktop'                          : '',
     'Documents'                        : '',
@@ -232,60 +208,10 @@ dir_node_exact_matches = {
     'Public'                           : '',
     'Templates'                        : '',
     'Videos'                           : '',
-# Spanish
-    'Escritorio'                       : '',
-    'Documentos'                       : '',
-    'Descargas'                        : '',
-    'Música'                           : '',
-    'Imágenes'                         : '',
-    'Público'                          : '',
-    'Plantillas'                       : '',
-    'Vídeos'                           : '',
-# French
-    'Bureau'                           : '',
-    'Documents'                        : '',
     'Images'                           : '',
-    'Musique'                          : '',
-    'Publique'                         : '',
-    'Téléchargements'                  : '',
-    'Vidéos'                           : '',
-# Portuguese
-    'Documentos'                       : '',
-    'Imagens'                          : '',
-    'Modelos'                          : '',
-    'Música'                           : '',
-    'Público'                          : '',
-    'Vídeos'                           : '',
-    'Área de trabalho'                 : '',
-# Italian
-    'Documenti'                        : '',
-    'Immagini'                         : '',
-    'Modelli'                          : '',
-    'Musica'                           : '',
-    'Pubblici'                         : '',
-    'Scaricati'                        : '',
-    'Scrivania'                        : '',
-    'Video'                            : '',
-# German
-    'Bilder'                           : '',
-    'Dokumente'                        : '',
-    'Musik'                            : '',
-    'Schreibtisch'                     : '',
-    'Vorlagen'                         : '',
-    'Öffentlich'                       : '',
-# Hungarian
-    'Dokumentumok'                     : '',
-    'Képek'                            : '',
-    'Modelli'                          : '',
-    'Zene'                             : '',
-    'Letöltések'                       : '',
-    'Számítógép'                       : '',
-    'Videók'                           : '',
-# XDG_USER_DIRS
-    **xdgs_dirs
 }
 
-file_node_exact_matches = {
+FILE_NODE_EXACT_MATCHES = {
     '.bash_aliases'                    : '',
     '.bash_history'                    : '',
     '.bash_logout'                     : '',
@@ -376,6 +302,16 @@ file_node_exact_matches = {
     'webpack.config.js'                : '',
 }
 
-def devicon(file):
-  if file.is_directory: return dir_node_exact_matches.get(file.relative_path, '')
-  return file_node_exact_matches.get(os.path.basename(file.relative_path), file_node_extensions.get(file.extension, ''))
+def devicon(fobj):
+    if fobj.is_directory:
+        return DIR_NODE_EXACT_MATCHES.get(fobj.relative_path, '')
+    return FILE_NODE_EXACT_MATCHES.get(
+        os.path.basename(fobj.relative_path), FILE_NODE_EXTENSIONS.get(fobj.extension, ''))
+
+
+@ranger.api.register_linemode
+class DevIconsLinemodeFile(LinemodeBase):
+    name = "filename"
+
+    def filetitle(self, fobj, metadata):
+        return devicon(fobj) + ' ' + fobj.relative_path
